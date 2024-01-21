@@ -1,23 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin>
-   <extension point="com.change_vision.astah.ui.actionSets">
-      <actionSet
-            label="%action_set_label"
-            visible="true"
-            id="hu.modeldriven.astah-rich-document.actionSet">
-         <menu
-               id="astah-rich-document"
-               label="%menu_group"
-               path="tool/astah-rich-document">
-         </menu>
-         <action
-			   label="%menu_label"
-               icon="icons/sample.gif"
-               class="hu.modeldriven.astah.richdocument.TemplateAction"
-               tooltip="%menu_tooltip"
-               menubarPath="tool/astah-rich-document/"
-               id="astah-rich-document">
-         </action>
-     </actionSet>
-   </extension>
+    <extension point="com.change_vision.astah.ui.view">
+        <view
+                id="hu.modeldriven.astah-rich-document.RichDocumentView"
+                type="extraTab"
+                class="hu.modeldriven.astah.richdocument.RichDocumentView"/>
+    </extension>
 </plugin>
