@@ -1,6 +1,5 @@
 package hu.modeldriven.astah.richdocument;
 
-import com.change_vision.jude.api.inf.AstahAPI;
 import com.change_vision.jude.api.inf.ui.IPluginExtraTabView;
 import com.change_vision.jude.api.inf.ui.ISelectionListener;
 
@@ -21,16 +20,7 @@ public class RichDocumentView extends JPanel implements IPluginExtraTabView {
     }
 
     private Container createContentPane() {
-
-        Component component = null;
-
-        try {
-            component = AstahAPI.getAstahAPI().getViewManager().getMainFrame();
-        } catch (Exception e) {
-            component = this;
-        }
-
-        return null;
+        return new RichDocumentPanel();
     }
 
     @Override
