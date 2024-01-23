@@ -23,3 +23,7 @@ The plugin reuses the same field, but uses HTML to support formatting.
 - text color
 - undo/redo support
 
+# Important notes
+
+- The plugin accepts only tags that are compatible with the supported functions
+- The plugin is built on https://github.com/modeldriven-hu/swing-html-editor
