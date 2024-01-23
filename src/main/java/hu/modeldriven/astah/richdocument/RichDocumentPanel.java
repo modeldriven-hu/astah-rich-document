@@ -1,16 +1,19 @@
 package hu.modeldriven.astah.richdocument;
 
 import com.change_vision.jude.api.inf.AstahAPI;
+import com.change_vision.jude.api.inf.editor.ITransactionManager;
 import com.change_vision.jude.api.inf.model.IEntity;
 import com.change_vision.jude.api.inf.model.INamedElement;
+import com.change_vision.jude.api.inf.project.ProjectAccessor;
 import com.change_vision.jude.api.inf.view.IEntitySelectionEvent;
 import com.change_vision.jude.api.inf.view.IEntitySelectionListener;
 import com.change_vision.jude.api.inf.view.IViewManager;
 import hu.modeldriven.swinghtmleditor.SwingHTMLEditor;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,22 +23,37 @@ public class RichDocumentPanel extends JPanel implements IEntitySelectionListene
 
     private final SwingHTMLEditor editor;
 
-    public RichDocumentPanel(){
+    private transient INamedElement selectedElement;
+
+    private boolean documentChanged = false;
+
+    public RichDocumentPanel() {
         super();
         this.editor = new SwingHTMLEditor();
         initComponents();
     }
 
     private void initComponents() {
-
-        System.err.println("Class loader is = " + getClass().getClassLoader());
-
-        InputStream is = getClass().getClassLoader().getResourceAsStream("images/x24/add.png");
-
-        System.err.println("Input stream is = " + is);
-
         this.setLayout(new BorderLayout());
         this.add(editor, BorderLayout.CENTER);
+
+        this.editor.addDocumentListener(new DocumentListener() {
+
+            @Override
+            public void insertUpdate(DocumentEvent documentEvent) {
+                onDocumentChanged(documentEvent);
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent documentEvent) {
+                onDocumentChanged(documentEvent);
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent documentEvent) {
+                onDocumentChanged(documentEvent);
+            }
+        });
 
         try {
             IViewManager viewManager = AstahAPI.getAstahAPI().getViewManager();
@@ -46,6 +64,9 @@ public class RichDocumentPanel extends JPanel implements IEntitySelectionListene
         }
     }
 
+    private void onDocumentChanged(DocumentEvent documentEvent) {
+        this.documentChanged = true;
+    }
 
     @Override
     public void entitySelectionChanged(IEntitySelectionEvent iEntitySelectionEvent) {
@@ -57,9 +78,13 @@ public class RichDocumentPanel extends JPanel implements IEntitySelectionListene
             selectedEntities.addAll(Arrays.asList(viewManager.getDiagramViewManager().getSelectedElements()));
 
             Optional<INamedElement> firstNamedElement = selectedEntities.stream()
-                    .filter(entity -> entity instanceof INamedElement)
+                    .filter(INamedElement.class::isInstance)
                     .map(INamedElement.class::cast)
                     .findFirst();
+
+            if (this.selectedElement != null && documentChanged) {
+                saveDefinition(selectedElement, editor.getText());
+            }
 
             if (firstNamedElement.isPresent()) {
                 onElementSelected(firstNamedElement.get());
@@ -72,12 +97,38 @@ public class RichDocumentPanel extends JPanel implements IEntitySelectionListene
         }
     }
 
-    void onElementSelected(INamedElement namedElement){
+    void onElementSelected(INamedElement namedElement) {
+        this.selectedElement = namedElement;
         editor.setText(namedElement.getDefinition());
+        this.documentChanged = false;
     }
 
-    void onNoElementSelected(){
-        editor.setText("");
+    void onNoElementSelected() {
+        this.selectedElement = null;
+        this.editor.setText("");
+        this.documentChanged = false;
     }
+
+    private void saveDefinition(INamedElement element, String definition) {
+        try {
+            AstahAPI api = AstahAPI.getAstahAPI();
+
+            ProjectAccessor accessor = api.getProjectAccessor();
+            ITransactionManager transactionManager = accessor.getTransactionManager();
+
+            try {
+                transactionManager.beginTransaction();
+                element.setDefinition(definition);
+                transactionManager.endTransaction();
+            } catch (Exception e) {
+                transactionManager.abortTransaction();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
 }
