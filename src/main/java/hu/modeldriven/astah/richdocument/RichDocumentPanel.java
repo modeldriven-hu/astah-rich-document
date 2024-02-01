@@ -2,6 +2,7 @@ package hu.modeldriven.astah.richdocument;
 
 import com.change_vision.jude.api.inf.AstahAPI;
 import com.change_vision.jude.api.inf.editor.ITransactionManager;
+import com.change_vision.jude.api.inf.model.IDiagram;
 import com.change_vision.jude.api.inf.model.IEntity;
 import com.change_vision.jude.api.inf.model.INamedElement;
 import com.change_vision.jude.api.inf.project.ProjectAccessor;
@@ -13,7 +14,7 @@ import hu.modeldriven.swinghtmleditor.SwingHTMLEditor;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -70,6 +71,7 @@ public class RichDocumentPanel extends JPanel implements IEntitySelectionListene
 
     @Override
     public void entitySelectionChanged(IEntitySelectionEvent iEntitySelectionEvent) {
+
         try {
             IViewManager viewManager = AstahAPI.getAstahAPI().getViewManager();
             List<IEntity> selectedEntities = new ArrayList<>();
@@ -77,17 +79,14 @@ public class RichDocumentPanel extends JPanel implements IEntitySelectionListene
             selectedEntities.addAll(Arrays.asList(viewManager.getProjectViewManager().getSelectedEntities()));
             selectedEntities.addAll(Arrays.asList(viewManager.getDiagramViewManager().getSelectedElements()));
 
-            Optional<INamedElement> firstNamedElement = selectedEntities.stream()
-                    .filter(INamedElement.class::isInstance)
-                    .map(INamedElement.class::cast)
-                    .findFirst();
+            Optional<INamedElement> firstModelElement = selectedEntities.stream().filter(INamedElement.class::isInstance).filter(e -> e instanceof IDiagram == false).map(INamedElement.class::cast).findFirst();
 
-            if (this.selectedElement != null && documentChanged) {
+            if (this.selectedElement != null && this.documentChanged) {
                 saveDefinition(selectedElement, editor.getText());
             }
 
-            if (firstNamedElement.isPresent()) {
-                onElementSelected(firstNamedElement.get());
+            if (firstModelElement.isPresent()) {
+                onElementSelected(firstModelElement.get());
             } else {
                 onNoElementSelected();
             }
@@ -109,6 +108,7 @@ public class RichDocumentPanel extends JPanel implements IEntitySelectionListene
         this.documentChanged = false;
     }
 
+
     private void saveDefinition(INamedElement element, String definition) {
         try {
             AstahAPI api = AstahAPI.getAstahAPI();
@@ -121,6 +121,7 @@ public class RichDocumentPanel extends JPanel implements IEntitySelectionListene
                 element.setDefinition(definition);
                 transactionManager.endTransaction();
             } catch (Exception e) {
+                e.printStackTrace();
                 transactionManager.abortTransaction();
             }
 
