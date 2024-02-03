@@ -74,10 +74,8 @@ public class RichDocumentPanel extends JPanel implements IEntitySelectionListene
 
         try {
             IViewManager viewManager = AstahAPI.getAstahAPI().getViewManager();
-            List<IEntity> selectedEntities = new ArrayList<>();
 
-            selectedEntities.addAll(Arrays.asList(viewManager.getProjectViewManager().getSelectedEntities()));
-            selectedEntities.addAll(Arrays.asList(viewManager.getDiagramViewManager().getSelectedElements()));
+            List<IEntity> selectedEntities = Arrays.asList(viewManager.getDiagramViewManager().getSelectedElements());
 
             Optional<INamedElement> firstModelElement = selectedEntities.stream().filter(INamedElement.class::isInstance).filter(e -> e instanceof IDiagram == false).map(INamedElement.class::cast).findFirst();
 
@@ -130,6 +128,5 @@ public class RichDocumentPanel extends JPanel implements IEntitySelectionListene
         }
 
     }
-
 
 }
